@@ -1,0 +1,163 @@
+-- Drop table
+
+-- DROP TABLE public.employee;
+
+CREATE TABLE public.employee (
+	id int4 NOT NULL,
+	description varchar(1000) NULL,
+	first_name varchar NULL,
+	last_name varchar NULL,
+	midle_name varchar NULL,
+	other_id int8 NULL,
+	CONSTRAINT employee_pk PRIMARY KEY (id)
+);
+
+-- Drop table
+
+-- DROP TABLE public."group";
+
+CREATE TABLE public."group" (
+	id int4 NOT NULL,
+	"name" varchar NOT NULL,
+	description varchar NULL,
+	CONSTRAINT group_pk PRIMARY KEY (id),
+	CONSTRAINT group_un UNIQUE (name)
+);
+
+-- Drop table
+
+-- DROP TABLE public."rule";
+
+CREATE TABLE public."rule" (
+	id int8 NOT NULL,
+	"name" varchar NOT NULL,
+	description varchar NULL,
+	CONSTRAINT rule_pk PRIMARY KEY (id),
+	CONSTRAINT rule_un UNIQUE (name)
+);
+
+-- Drop table
+
+-- DROP TABLE public."user";
+
+CREATE TABLE public."user" (
+	id int4 NOT NULL,
+	"name" varchar NOT NULL,
+	descript varchar NULL,
+	CONSTRAINT user_pk PRIMARY KEY (id),
+	CONSTRAINT user_un UNIQUE (name)
+);
+
+-- Drop table
+
+-- DROP TABLE public.employee_group;
+
+CREATE TABLE public.employee_group (
+	id int8 NOT NULL,
+	id_employee int4 NOT NULL,
+	id_group int4 NOT NULL,
+	CONSTRAINT employee_group_pk PRIMARY KEY (id),
+	CONSTRAINT employee_group_un UNIQUE (id_employee, id_group),
+	CONSTRAINT employee_group_fk FOREIGN KEY (id_employee) REFERENCES employee(id) ON UPDATE CASCADE ON DELETE CASCADE,
+	CONSTRAINT employee_group_fk1 FOREIGN KEY (id_group) REFERENCES "group"(id) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+-- Drop table
+
+-- DROP TABLE public.face;
+
+CREATE TABLE public.face (
+	id int8 NOT NULL,
+	"descriptor" _float4 NOT NULL,
+	id_employee int4 NOT NULL,
+	CONSTRAINT face_pk PRIMARY KEY (id),
+	CONSTRAINT face_fk FOREIGN KEY (id_employee) REFERENCES employee(id) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+-- Drop table
+
+-- DROP TABLE public.group_user;
+
+CREATE TABLE public.group_user (
+	id int8 NOT NULL,
+	id_user int4 NOT NULL,
+	id_group int4 NOT NULL,
+	CONSTRAINT group_user_pk PRIMARY KEY (id),
+	CONSTRAINT group_user_un UNIQUE (id_user, id_group),
+	CONSTRAINT group_user_fk FOREIGN KEY (id_group) REFERENCES "group"(id) ON UPDATE CASCADE ON DELETE CASCADE,
+	CONSTRAINT group_user_fk_1 FOREIGN KEY (id_user) REFERENCES "user"(id) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+-- Drop table
+
+-- DROP TABLE public.premise;
+
+CREATE TABLE public.premise (
+	id int4 NOT NULL,
+	"name" varchar NOT NULL,
+	description varchar NULL,
+	id_parent_premise int4 NULL,
+	CONSTRAINT premise_pk PRIMARY KEY (id),
+	CONSTRAINT premise_un UNIQUE (name),
+	CONSTRAINT premise_fk FOREIGN KEY (id_parent_premise) REFERENCES premise(id) ON UPDATE CASCADE ON DELETE RESTRICT
+);
+
+-- Drop table
+
+-- DROP TABLE public.rule_link_premise;
+
+CREATE TABLE public.rule_link_premise (
+	id int4 NOT NULL,
+	id_rule int4 NOT NULL,
+	id_premise int4 NOT NULL,
+	CONSTRAINT rule_link_premise_pk PRIMARY KEY (id),
+	CONSTRAINT rule_link_premise_un UNIQUE (id_premise, id_rule),
+	CONSTRAINT rule_link_premise_fk FOREIGN KEY (id_rule) REFERENCES rule(id) ON UPDATE CASCADE ON DELETE CASCADE,
+	CONSTRAINT rule_link_premise_fk_1 FOREIGN KEY (id_premise) REFERENCES premise(id) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+-- Drop table
+
+-- DROP TABLE public.camera;
+
+CREATE TABLE public.camera (
+	id int4 NOT NULL,
+	address varchar(600) NOT NULL,
+	"position" bpchar(1) NULL,
+	description varchar(1200) NULL,
+	id_premise int4 NULL,
+	id_user int4 NOT NULL,
+	CONSTRAINT camera_check CHECK (("position" = ANY (ARRAY['n'::bpchar, 'i'::bpchar, 'o'::bpchar]))),
+	CONSTRAINT camera_un UNIQUE (address, id_user),
+	CONSTRAINT pk_camera PRIMARY KEY (id),
+	CONSTRAINT camera_fk FOREIGN KEY (id_premise) REFERENCES premise(id) ON UPDATE CASCADE ON DELETE SET NULL,
+	CONSTRAINT camera_fk2 FOREIGN KEY (id_user) REFERENCES "user"(id) ON UPDATE RESTRICT ON DELETE RESTRICT
+);
+
+-- Drop table
+
+-- DROP TABLE public.recognit;
+
+CREATE TABLE public.recognit (
+	id int8 NOT NULL,
+	id_camera int4 NOT NULL,
+	id_employee int4 NOT NULL,
+	time_r timestamp NOT NULL,
+	CONSTRAINT recognit_pk PRIMARY KEY (id),
+	CONSTRAINT recognit_fk FOREIGN KEY (id_employee) REFERENCES employee(id) ON UPDATE CASCADE ON DELETE CASCADE,
+	CONSTRAINT recognit_fk2 FOREIGN KEY (id_camera) REFERENCES camera(id) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+-- Drop table
+
+-- DROP TABLE public.rule_link_camera;
+
+CREATE TABLE public.rule_link_camera (
+	id int8 NOT NULL,
+	id_rule int4 NOT NULL,
+	id_camera int4 NOT NULL,
+	CONSTRAINT rule_link_camera_pk PRIMARY KEY (id),
+	CONSTRAINT rule_link_camera_un UNIQUE (id_rule, id_camera),
+	CONSTRAINT rule_link_camera_fk FOREIGN KEY (id_camera) REFERENCES camera(id) ON UPDATE CASCADE ON DELETE CASCADE,
+	CONSTRAINT rule_link_camera_fk_1 FOREIGN KEY (id_rule) REFERENCES rule(id) ON UPDATE CASCADE ON DELETE CASCADE
+);

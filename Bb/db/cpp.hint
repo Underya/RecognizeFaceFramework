@@ -1,0 +1,2 @@
+#define DB_API __declspec(dllexport)
+#define DB_API __declspec(dllimport)

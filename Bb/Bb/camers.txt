@@ -1,0 +1,12 @@
+cam
+address:test_video.avi;
+position:n;
+id:1;
+description:cam1;
+id_premise:-1;
+cam
+address:test_video2.avi;
+position:n;
+id:2;
+description:cam2;
+id_premise:-1;

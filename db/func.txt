@@ -1,0 +1,589 @@
+CREATE OR REPLACE FUNCTION public.addemployee(_f_name character varying, _l_name character varying, _m_name character varying, _desc_ character varying, _id_ bigint DEFAULT '-1'::integer)
+ RETURNS integer
+ LANGUAGE plpgsql
+AS $function$
+	declare
+		new_id int4;
+	BEGIN
+		
+		new_id := nextval('seq_employee');
+	
+		insert into employee("id", "first_name", "last_name", "midle_name", "description", "other_id")
+		values (new_id, _f_name, _l_name, _m_name, _desc_, _id_);
+	
+		return new_id;
+	END;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.addemployeegroup(_id_employee character varying, _id_group character varying)
+ RETURNS integer
+ LANGUAGE plpgsql
+AS $function$
+	declare
+		new_id int8;
+	BEGIN
+		new_id := nextval('seq_employee_group');
+		insert into public.employee_group (id, id_employee, id_group )		
+		values (new_id, _id_employee, _id_group);
+		return new_id;
+	END;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.addemployeegroup(_id_employee integer, _id_group integer)
+ RETURNS integer
+ LANGUAGE plpgsql
+AS $function$
+	declare
+		new_id int8;
+	BEGIN
+		new_id := nextval('seq_employee_group');
+		insert into public.employee_group (id, id_employee, id_group )		
+		values (new_id, _id_employee, _id_group);
+		return new_id;
+	END;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.addface(face_desc real[], id_e bigint)
+ RETURNS integer
+ LANGUAGE plpgsql
+AS $function$
+	declare 
+	new_id int4;
+	
+	begin
+		select nextval('seq_face')
+		into new_id;
+			insert into face ("id","descriptor", "id_employee" )
+		values (new_id, face_desc, id_e);
+		return new_id;
+	END;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.addgroup(new_name character varying, new_description character varying)
+ RETURNS integer
+ LANGUAGE plpgsql
+AS $function$
+	declare 
+		new_id int4;
+	BEGIN
+		new_id := nextval('seq_group');
+		insert into public.group (id, name, description )
+		values (new_id, new_name, new_description);
+		
+		return new_id;
+	END;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.addnewcamera(naddress character varying, npos character, descr character varying, id_user integer, id_premisse integer DEFAULT '-1'::integer)
+ RETURNS integer
+ LANGUAGE plpgsql
+AS $function$
+	declare 
+		new_id int4;
+		
+	BEGIN
+		select nextval('seq_camera')
+		into new_id ;
+	
+		if id_premisse = -1 then 
+				insert  into camera("id" , "address", "position", "description", "id_premise", "id_user")
+				values (new_id, naddress, npos, descr, null, id_user);
+		else 
+				insert  into camera("id" , "address", "position", "description", "id_premise", "id_user")
+				values (new_id, naddress, npos, descr, id_premisse, id_user);
+		end if;
+			
+		return new_id;
+	END;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.addpremise(_name character varying, _descr character varying, _id_parent integer DEFAULT '-1'::integer)
+ RETURNS integer
+ LANGUAGE plpgsql
+AS $function$
+	declare 
+	new_id int4;
+	BEGIN
+		new_id := nextval('seq_premise');
+		
+		--Избежание зациклинивания
+		if _id_parent = new_id then
+			_id_parent  := -1;
+		end if;
+	
+		if _id_parent = -1 then
+			insert into premise (id, "name" , description)
+			values (new_id, _name, _descr);
+		else
+			insert into premise (id, "name" , description, id_parent_premise )
+			values (new_id, _name, _descr, _id_parent);
+		end if;
+		
+		return new_id;
+	END;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.addrecognit(id_emp integer, id_cam integer)
+ RETURNS integer
+ LANGUAGE plpgsql
+AS $function$
+	declare  
+	Curr_time time;
+	new_id integer;
+	BEGIN
+		new_id := nextval('seq_recognit');
+		insert into recognit (id, id_employee, id_camera, time_r)
+		values (new_id, id_emp, id_cam, current_timestamp);
+		return new_id;
+	END;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.addrule(new_name character varying, new_desc character varying)
+ RETURNS integer
+ LANGUAGE plpgsql
+AS $function$
+	declare 
+	new_id int4;
+	BEGIN
+		new_id := nextval('seq_rule');
+			insert into rule (id, "name", description )
+			values (new_id, new_name, new_desc);
+		return new_id;
+	END;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.adduser(new_name character varying, descr character varying)
+ RETURNS integer
+ LANGUAGE plpgsql
+AS $function$
+	declare
+		new_id int4;
+	BEGIN
+		new_id := nextval('seq_user');
+	
+		insert into "user" (id, "name", descript)
+		values (new_id, new_name, descr);
+	
+		return new_id;
+	END;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.deletecamera(id_old integer)
+ RETURNS integer
+ LANGUAGE plpgsql
+AS $function$
+	BEGIN
+		delete from camera c2 
+		where id = id_old;
+		return 0;
+	END;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.deleteemployee(id_old integer)
+ RETURNS boolean
+ LANGUAGE plpgsql
+AS $function$
+	BEGIN
+		delete from employee e2 
+		where id = id_old;
+		return true;
+	END;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.deleteemployeegroup(_id_employee integer, _id_group integer)
+ RETURNS boolean
+ LANGUAGE plpgsql
+AS $function$
+	BEGIN
+		delete from public.employee_group eg 
+		where eg.id_employee  = _id_employee and eg.id_group  = _id_group;
+	
+		return true;
+	END;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.deleteface(id_old integer)
+ RETURNS boolean
+ LANGUAGE plpgsql
+AS $function$
+	BEGIN
+		delete from face 
+		where id = id_old;
+		return true;
+	END;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.deletegroup(id_obj integer)
+ RETURNS boolean
+ LANGUAGE plpgsql
+AS $function$
+	BEGIN
+		delete from public.group where id = id_obj;
+		return true;
+	END;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.deletepremise(id_delete_obj integer)
+ RETURNS boolean
+ LANGUAGE plpgsql
+AS $function$
+	BEGIN
+		delete from premise p2
+		where p2.id  = id_delete_obj;
+		return true;
+	END;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.deleterule(id_obj integer)
+ RETURNS boolean
+ LANGUAGE plpgsql
+AS $function$
+	BEGIN
+		delete from public."rule" r where id = id_obj;
+		return true	;
+	END;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.deleteuser(id_obj integer)
+ RETURNS boolean
+ LANGUAGE plpgsql
+AS $function$
+	BEGIN
+		delete from "user" where id = id_obj;
+		return true;
+	END;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.editcamera(id_o integer, naddress character varying, nposition character, ndesc character varying, id_prem integer DEFAULT '-1'::integer)
+ RETURNS boolean
+ LANGUAGE plpgsql
+AS $function$
+	begin
+		if id_prem = -1 then
+			update camera set "address" = naddress, "position" = nposition, "description" = ndesc, "id_premise" = NULL
+			where id = id_o;
+		else 
+			update camera set "address" = naddress, "position" = nposition, "description" = ndesc, "id_premise" = id_prem
+			where id = id_o;
+		end if;
+	
+		return true;
+	END;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.editemployee(id_old integer, _f_name character varying, _l_name character varying, _m_name character varying, ndes character varying, _other_id bigint DEFAULT '-1'::integer)
+ RETURNS boolean
+ LANGUAGE plpgsql
+AS $function$
+	BEGIN
+		update employee set 
+			"first_name" = _f_name, 
+			"last_name"  = _l_name,
+			"midle_name" = _m_name,
+			"description" = ndes,
+			"other_id" = _other_id
+		where id = id_old;
+		return true;
+	END;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.editepremiseparent(_id_premise integer, _id_parent_premise integer)
+ RETURNS boolean
+ LANGUAGE plpgsql
+AS $function$
+	BEGIN
+
+		if _id_parent_premise = -1 then 
+			update premise set "id_parent_premise" = NULL 
+			where id = _id_premise;
+		else 
+			update premise set "id_parent_premise" = _id_parent_premise
+			where id = _id_premise;
+		end if;
+		
+		return true;
+	END;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.editface(id_d bigint, face_desc real[])
+ RETURNS boolean
+ LANGUAGE plpgsql
+AS $function$
+	declare 
+		new_d float4;
+	BEGIN
+		select public.sumsqrarray(face_desc)
+		into new_d;
+		update face set "descriptor" = face_desc, "d" = new_d 
+		where id = id_d;
+		return true;
+	END;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.editgroup(id_obj integer, new_name character varying, new_desc character varying)
+ RETURNS boolean
+ LANGUAGE plpgsql
+AS $function$
+	BEGIN
+		update public."group" set "name"  = new_name, "description" = new_desc
+		where id = id_obj;
+		return True;
+	END;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.editpremise(id_obj integer, new_name character varying, new_desc character varying)
+ RETURNS boolean
+ LANGUAGE plpgsql
+AS $function$
+	
+	BEGIN
+		update premise  set "name" = new_name, "description" = new_desc 
+		where id = id_obj;
+		return True;
+	END;	
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.editrule(id_obj integer, new_name character varying, new_desc character varying)
+ RETURNS boolean
+ LANGUAGE plpgsql
+AS $function$
+	BEGIN
+		update public."rule" set "name"  = new_name, description = new_desc
+		where id  = id_obj;
+		return true;
+	END;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.edituser(id_obj integer, new_name character varying, new_desc character varying)
+ RETURNS boolean
+ LANGUAGE plpgsql
+AS $function$	
+	BEGIN
+		update "user" set "name" = new_name, descript = new_desc
+		where id = id_obj;
+		return true;
+	END;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.getdistance(arr1 real[], d1 real, arr2 real[], d2 real)
+ RETURNS double precision
+ LANGUAGE plpgsql
+AS $function$
+	declare 
+	x1 float4;
+	x2 float4;
+	summ float8;
+	arr_size integer;
+	begin
+		arr_size := 128; 
+		summ := 0;
+		--for i in 1 .. arr_size loop
+			--summ := summ + arr1[i] * arr2[i];
+--		end loop;
+		
+	--	summ := d1 + d2 - 2 * summ;
+--		summ := sqrt(abs(summ));
+	
+		for i in 1 .. arr_size loop
+			summ := summ + (arr1[i] - arr2[i])	^ 2;
+		end loop;
+		
+			summ := sqrt(summ);
+	
+		return summ;
+	END;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.getdistance(arr1 real[], arr2 real[])
+ RETURNS double precision
+ LANGUAGE plpgsql
+AS $function$
+	declare 
+	x1 float4;
+	x2 float4;
+	summ float8;
+	arr_size integer;
+	begin
+		arr_size := 128; 
+		summ := 0;
+		--for i in 1 .. arr_size loop
+			--summ := summ + arr1[i] * arr2[i];
+--		end loop;
+		
+	--	summ := d1 + d2 - 2 * summ;
+--		summ := sqrt(abs(summ));
+	
+		for i in 1 .. arr_size loop
+			summ := summ + (arr1[i] - arr2[i])	^ 2;
+		end loop;
+		
+			summ := sqrt(summ);
+	
+		return summ;
+	END;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.linkenrulecam(_id_rule integer, _id_cam integer)
+ RETURNS integer
+ LANGUAGE plpgsql
+AS $function$
+	declare 
+		new_id int8;
+	BEGIN
+		new_id := nextval('seq_rule_link');
+		insert into rule_link_camera (id, id_rule , id_camera )
+		values(new_id, _id_rule, _id_cam);
+		return new_id;
+	END;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.linkenrulepremise(_id_rule integer, _id_premise integer)
+ RETURNS integer
+ LANGUAGE plpgsql
+AS $function$
+	declare 
+		new_id int8;
+	BEGIN
+		new_id := nextval('seq_rule_link');
+		insert into rule_link_premise (id, id_rule, id_premise )
+		values (new_id, _id_rule, _id_premise);
+		return new_id;	
+	END;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.linkgroupuser(id_gr integer, id_us integer)
+ RETURNS bigint
+ LANGUAGE plpgsql
+AS $function$
+	declare 
+		new_id int8;
+	BEGIN
+		new_id := nextval('seq_group_user');
+	
+		insert into group_user (id, id_group, id_user )
+		values (new_id, id_gr, id_us);
+	
+		return new_id;
+	END;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.loginuser(search_name character varying)
+ RETURNS integer
+ LANGUAGE plpgsql
+AS $function$
+	declare 
+		id_obj int4;
+		count_obj int4;
+	BEGIN
+		--Полученеи количества строк с таким логином
+		select count(u.id)
+		into count_obj
+		from "user" u
+		where u."name"  = search_name;
+		
+		--Если нет объектов, вернуть -1
+		if count_obj = 0 then
+			return -1;
+		end if;
+	
+		--Получть нужный id
+		select u.id
+		into id_obj
+		from "user" u
+		where u."name"  = search_name;
+	
+		--Вернуть id
+		return id_obj;
+	END;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.searchface(search_arr real[])
+ RETURNS integer
+ LANGUAGE plpgsql
+AS $function$
+	declare 
+	x float4;
+	d float4;
+	distanc float8;
+	face FACE;
+	begin
+		--Заранее вычисляется сумма квадратов
+		d := public.sumsqrarray(search_arr);
+		--Цикл по всем записям в таблице
+		for face in 
+			select * 
+			from public.face
+		loop
+			distanc = public.getdistance(face."descriptor" , search_arr);
+			--Если у он подходит по значение
+			if distanc < 0.6 then
+				return face.id_employee;
+			end if;
+		end loop;
+	
+		return -1;
+	END;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.sumsqrarray(arr real[])
+ RETURNS real
+ LANGUAGE plpgsql
+AS $function$
+	declare 
+		res float4 := 0;
+		x float4 := 0;
+	BEGIN
+		foreach x in array arr 
+		LOOp
+			res := res + x * x;			
+		end loop;
+		
+		return res;
+	END;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.unlinkgroupuser(id_gr integer, id_us integer)
+ RETURNS boolean
+ LANGUAGE plpgsql
+AS $function$
+	BEGIN
+		delete from group_user gu 
+		where gu.id_group  = id_gr and gu.id_user  = id_us;
+		return true;
+	END;
+$function$
+;

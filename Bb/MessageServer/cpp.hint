@@ -1,0 +1,2 @@
+#define MESSAGESERVER_API __declspec(dllexport)
+#define MESSAGESERVER_API __declspec(dllimport)

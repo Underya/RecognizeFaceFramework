@@ -1,0 +1,5 @@
+has_db:256;
+import:0;
+rec1:t.json;
+show_window:1;
+thread_count:8;

@@ -1,0 +1,8 @@
+libpq
+include
+dlib
+*vcxproj*
+*.xml
+*.mhtml*
+Debug
+rapidjson
